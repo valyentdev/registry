@@ -1,3 +1,16 @@
 registry.panache.so {
     reverse_proxy registry:5050
+
+    @healthcheck {
+        path /_ping
+    }
+    respond @healthcheck 200
+
+    log {
+        output file /var/log/caddy/registry.log {
+            roll_size 10mb
+            roll_keep 5
+            roll_keep_for 30d
+        }
+    }
 }
