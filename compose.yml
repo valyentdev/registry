@@ -6,10 +6,29 @@ services:
       - '9001:9001'
     environment:
       - MINIO_ROOT_USER=minioadmin
-      - MINIO_ROOT_PASSWORD=minioadmin
+      - MINIO_ROOT_PASSWORD=minio9345678945678adminb67890lanquettedeveausupremedelice
     command: server /data --console-address ":9001"
     volumes:
       - minio_data:/data
+  registry:
+    build:
+      context: .
+    ports:
+      - '5050:5050'
+    env_file: .env
+  caddy:
+    image: caddy:2
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - registry_caddy_data:/data
+      - registry_caddy_config:/config
+    depends_on:
+      -  registry
 
 volumes:
   minio_data:
+  registry_caddy_data:
+  registry_caddy_config:

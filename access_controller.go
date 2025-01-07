@@ -32,6 +32,11 @@ func (ac *accessController) Authorized(req *http.Request, accessRecords ...auth.
 				err: auth.ErrInvalidCredential,
 			}
 		}
+
+
+		return &auth.Grant{
+			User: auth.UserInfo{Name: username},
+		}, nil
 	}
 
 	// Check if the password matches a valid API key

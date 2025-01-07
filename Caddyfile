@@ -1,0 +1,3 @@
+registry.panache.so {
+    reverse_proxy registry:5050
+}
