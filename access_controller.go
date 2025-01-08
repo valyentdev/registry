@@ -10,10 +10,16 @@ import (
 	"github.com/distribution/distribution/v3/registry/auth"
 )
 
-type accessController struct{}
+type accessController struct {
+	ravelPassword string
+	apiBaseURL    string
+}
 
-func newAccessController(options map[string]interface{}) (auth.AccessController, error) {
-	return &accessController{}, nil
+func newAccessController(options map[string]any) (auth.AccessController, error) {
+	return &accessController{
+		ravelPassword: os.Getenv("REGISTRY_RAVEL_PASSWORD"),
+		apiBaseURL:    os.Getenv("VALYENT_API_BASE_URL"),
+	}, nil
 }
 
 func (ac *accessController) Authorized(req *http.Request, accessRecords ...auth.Access) (*auth.Grant, error) {
@@ -27,12 +33,11 @@ func (ac *accessController) Authorized(req *http.Request, accessRecords ...auth.
 	// When Ravel consumes the registry,
 	// check if the password matches the expected one
 	if username == "valyent" {
-		if password != os.Getenv("REGISTRY_RAVEL_PASSWORD") {
+		if password != ac.ravelPassword {
 			return nil, &challenge{
 				err: auth.ErrInvalidCredential,
 			}
 		}
-
 
 		return &auth.Grant{
 			User: auth.UserInfo{Name: username},
@@ -60,7 +65,7 @@ func (ac *accessController) Authorized(req *http.Request, accessRecords ...auth.
 
 func (ac *accessController) validateApiKey(apiKey string, accessRecords []auth.Access) (bool, error) {
 	// Create the request to the Valyent API
-	url := fmt.Sprintf("%s/auth/api/check", os.Getenv("VALYENT_API_BASE_URL"))
+	url := fmt.Sprintf("%s/auth/api/check", ac.apiBaseURL)
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return false, err
