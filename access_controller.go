@@ -11,14 +11,12 @@ import (
 )
 
 type accessController struct {
-	ravelPassword string
-	apiBaseURL    string
+	apiBaseURL string
 }
 
 func newAccessController(options map[string]any) (auth.AccessController, error) {
 	return &accessController{
-		ravelPassword: os.Getenv("REGISTRY_RAVEL_PASSWORD"),
-		apiBaseURL:    os.Getenv("VALYENT_API_BASE_URL"),
+		apiBaseURL: os.Getenv("VALYENT_API_BASE_URL"),
 	}, nil
 }
 
