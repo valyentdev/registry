@@ -33,15 +33,11 @@ func (ac *accessController) Authorized(req *http.Request, accessRecords ...auth.
 	// When Ravel consumes the registry,
 	// check if the password matches the expected one
 	if username == "valyent" {
-		if password != ac.ravelPassword {
+		if password != os.Getenv("REGISTRY_RAVEL_PASSWORD") {
 			return nil, &challenge{
 				err: auth.ErrInvalidCredential,
 			}
 		}
-
-		return &auth.Grant{
-			User: auth.UserInfo{Name: username},
-		}, nil
 	}
 
 	// Check if the password matches a valid API key
@@ -59,7 +55,7 @@ func (ac *accessController) Authorized(req *http.Request, accessRecords ...auth.
 	}
 
 	return &auth.Grant{
-		User: auth.UserInfo{Name: username},
+		User: auth.UserInfo{Name: "valyent"},
 	}, nil
 }
 
