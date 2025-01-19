@@ -1,4 +1,4 @@
-FROM golang:1.23.2
+FROM golang:1.23.2-alpine AS builder
 
 WORKDIR /app
 
@@ -7,6 +7,13 @@ RUN go mod download
 
 COPY . .
 
-RUN go build .
+RUN go build -o /app/registry .
 
+FROM alpine:latest
+
+WORKDIR /app
+
+COPY --from=builder /app/registry /app/registry
+
+EXPOSE 5050
 CMD [ "/app/registry" ]
