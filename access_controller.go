@@ -8,15 +8,24 @@ import (
 	"strings"
 
 	"github.com/distribution/distribution/v3/registry/auth"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type accessController struct {
-	apiBaseURL string
+	apiBaseURL    string
+	ravelPassword []byte
 }
 
 func newAccessController(options map[string]any) (auth.AccessController, error) {
+	password := os.Getenv("REGISTRY_RAVEL_PASSWORD")
+	bcrypted, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return nil, fmt.Errorf("error hashing the password: %w", err)
+	}
+
 	return &accessController{
-		apiBaseURL: os.Getenv("VALYENT_API_BASE_URL"),
+		apiBaseURL:    os.Getenv("VALYENT_API_BASE_URL"),
+		ravelPassword: bcrypted,
 	}, nil
 }
 
@@ -27,14 +36,18 @@ func (ac *accessController) Authorized(req *http.Request, accessRecords ...auth.
 			err: auth.ErrInvalidCredential,
 		}
 	}
-
 	// When Ravel consumes the registry,
 	// check if the password matches the expected one
 	if username == "valyent" {
-		if password != os.Getenv("REGISTRY_RAVEL_PASSWORD") {
+		// constant-time comparison
+		if err := bcrypt.CompareHashAndPassword(ac.ravelPassword, []byte(password)); err != nil {
 			return nil, &challenge{
 				err: auth.ErrInvalidCredential,
 			}
+		} else {
+			return &auth.Grant{
+				User: auth.UserInfo{Name: "valyent"},
+			}, nil
 		}
 	}
 
